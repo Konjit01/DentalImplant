@@ -5,16 +5,10 @@
 # MeVis module import
 from mevis import *
 
-#from Crypto.Cipher import AES #128 bit encrption
-import base64  
-from hashlib import md5
+#Other imports
 import math
 import numpy
 import time 
-import threading
-from threading import Thread
-import os #urandom nd others
-from thread import start_new_thread, allocate_lock
 
 #Global varilables
 totalNumOfImplants = 0
@@ -30,18 +24,18 @@ jawType            = ctx.field("selectJaw").value
 
 def makeAllImplantsParallel():
   selectedImplant = int(ctx.field("SelectedImplant").value)
-  noOfImplants = getMarkerList().size()
+  noOfImplants    = getMarkerList().size()
   bypass = "SoBypass" + str(selectedImplant) + ".bypass"
-  new =  "SoBypass" + str(selectedImplant)
+  new    =  "SoBypass" + str(selectedImplant)
   transfmanipReference = ctx.field(ctx.field(new + ".baseIn0").connectedField().parent().childAtIndex(2).connectedField().parent().name + ".baseIn0").connectedField().parent().name
   i = 1
   for index in xrange(getMarkerList().size()):
     bypass = "SoBypass" + str(i) + ".bypass"
     if i <= noOfImplants:
       #print("In the make parallel")
-      marker = getMarkerList().getMarker(index)
+      marker     = getMarkerList().getMarker(index)
       marker_ptr = [marker.x, marker.y, marker.z]
-      list = [marker.x, marker.y, marker.z]
+      list       = [marker.x, marker.y, marker.z]
       transfmanipName = ctx.field(ctx.field("SoBypass" + str(index+1) + ".baseIn0").connectedField().parent().childAtIndex(2).connectedField().parent().name + ".baseIn0").connectedField().parent().name
       ctx.field(transfmanipName.__str__() + ".rotation").value = ctx.field(transfmanipReference +  ".rotation").value
       rotation_value = ctx.field(transfmanipReference +  ".rotation").value
@@ -58,7 +52,7 @@ def makeAllImplantsParallel():
   return
 
 ############################################
-# Remove implant of selected implant      #
+# Remove implant of selected marker        #
 ############################################
 def removeImplatAtMArker():
   
@@ -82,6 +76,9 @@ def removeImplatAtMArker():
   ctx.field(bypass).value = False
   return
 
+###################################
+# Removes all implants            #
+###################################
 def removeAllImplants():
   i = 1
   global totalNumOfImplants
@@ -249,6 +246,7 @@ def switchBetweenSideAndBottom(val):
       ctx.field( baseSwitch + ".currentInput").value = 1
     i=+1
   return
+
 #########################################################
 # Implant Radius Optimization
 ##########################################################
@@ -582,9 +580,9 @@ def insertImplantAtMarker():
   #print("Implant status", implantPsnStatus)
   return totalNumOfImplants
 
-#########################################
-# Meausres the angle between two implants#
-#########################################
+###########################################
+# Meausres the angle between two implants #
+###########################################
 def showAngleBetweenTwoImplants():
   PI = 3.141592653
   selectedImplantOne = ctx.field("SelectedImplant").value
@@ -604,39 +602,10 @@ def showAngleBetweenTwoImplants():
     ctx.field("radValue").value = inDegree
   return 
 
+############################################
+# GUI and View
+############################################
 
-def doNotShowAxis():
-  ctx.field("showAxis.bypass").value = 0
-  return
-  
-def showManipulator():
-  ctx.field("showModel.noBypass").value = 1 - ctx.field("showManipulator").value
-  return
-
-def doNotShowManipulator():
-  ctx.field("showModel.bypass").value = 0 
-  return
-
-def doNotShowModel():
-  ctx.field("showModel.noBypass").value = 0 - ctx.field("showModel").value
-  return
-
-def showModelCmd():
-  #ctx.field("showModel.noBypass").value = 1 - ctx.field("showModel").value
-  return
-
-def show3DCurveChanged():
-  ctx.field("CurvePass.noBypass").value = 1 - ctx.field("display3DCurve").value
-  return
-
-def doNotShowNerve():
-  ctx.field("Bypass.noBypass").value = 0 - ctx.field("display3DNerve").value
-  return
-  
-def show3DNerve(field):
- ctx.field("Bypass.noBypass").value = 1 - ctx.field("display3DNerve").value
- return
- 
 def show(name):
   ctx.field("planningView.applyCameraOrientation").value  = name
   ctx.field("implantViewer.applyCameraOrientation").value = name
@@ -675,7 +644,6 @@ def startZValue(field):
 def endZValue(field):
  ctx.field("cropImageInXYZ.sz").value = ctx.field("endZ").value
  return
-
 
 def applyCrop(field):
   ctx.field("cropImageInXYZ.apply").touch()
@@ -898,86 +866,14 @@ def decrypt(in_file, out_file, password, key_length=32):
         out_file.write(chunk)
 
 
-#################################
-# Tabs Controllers              #
-#################################
-
-def ImportTabSelected():
-  ctx.control('view2DRightNervePanoramic').setVisible(False)
-  ctx.control('viewerImplant')            .setVisible(False)
-  ctx.control('viewerSlice' )             .setVisible(True)
-  ctx.control("axialCrop")                .setVisible(False)
-  ctx.control("exportStatusView")         .setVisible(False)
-  ctx.control("implantPlanningView")      .setVisible(False)
-  return
-
-def CropTabSelected():
-  ctx.control('view2DRightNervePanoramic').setVisible(False)
-  ctx.control('viewerImplant')            .setVisible(False)
-  ctx.control('viewerSlice')              .setVisible(False)
-  ctx.control("exportStatusView")         .setVisible(False)
-  ctx.control("axialCrop")                .setVisible(True)
-  ctx.control("implantPlanningView")      .setVisible(False)
-  return
-  
-def ImplantTabSelected():
-  ctx.control('viewerImplant')            .setVisible(True)
-  ctx.control('viewerSlice')              .setVisible(False)
-  ctx.control('view2DRightNervePanoramic').setVisible(False)
-  ctx.control("axialCrop")                .setVisible(False)
-  ctx.control("implantPlanningView")      .setVisible(False)
-  ctx.control("exportStatusView")         .setVisible(False)
-  ctx.field("selectPlanningMode").value   = "implant"
-  #ctx.field("viewTypes").value            = "CAMERA_SAGITTAL"
-  return
-
-def ImplantPlanningTabSelected():
-  ctx.control("exportStatusView")         .setVisible(False)
-  ctx.control('viewerImplant')            .setVisible(False)
-  ctx.control('viewerSlice')              .setVisible(False)
-  ctx.control('view2DRightNervePanoramic').setVisible(False)
-  ctx.control("axialCrop")                .setVisible(False)
-  ctx.control('implantPlanningView')      .setVisible(True)
-  ctx.field("viewTypes").value            = "Coronal"
-  ctx.field("selectPlanningMode").value   = "editSurafce"
-  return
-
-def PanoramicTabSelected():
-  ctx.control('view2DRightNervePanoramic').setVisible(False)
-  ctx.control('viewerSlice')              .setVisible(True)
-  ctx.control('viewerImplant')            .setVisible(False)
-  ctx.control("axialCrop")                .setVisible(False)
-  ctx.control('implantPlanningView')      .setVisible(False)
-  ctx.control("exportStatusView")         .setVisible(False)
-  return 
-
-def NerveTabSelected():
-  ctx.control('viewerSlice')              .setVisible(False)
-  ctx.control('viewerImplant')            .setVisible(False)
-  ctx.control('view2DRightNervePanoramic').setVisible(True)
-  ctx.control("axialCrop")                .setVisible(False)
-  ctx.control("implantPlanningView")      .setVisible(False)
-  ctx.control("exportStatusView")         .setVisible(False)
-  ctx.field("saggitalView.viewAll")       .touch()
-  ctx.field("nerve3DViewer.viewAll")      .touch()
-  return
-
-def ExprotTabSelected():
-  ctx.control('viewerImplant')            .setVisible(False)
-  ctx.control('viewerSlice')              .setVisible(False)
-  ctx.control('view2DRightNervePanoramic').setVisible(False)
-  ctx.control("axialCrop")                .setVisible(False)
-  ctx.control('implantPlanningView')      .setVisible(False)
-  ctx.control("exportStatusView")         .setVisible(True)
-  return
 
 def applyCropToSelectedRegion(field):
   ctx.field("cropImageInXYZ.apply").touch()
   return
+
 ############################################
 # Some settings and config to be refactored#
 ############################################
- 
 def sliceStepChanged(field):
   ctx.field("SoView2D1.sliceStep").value = ctx.field("sliceStep").value
   return
@@ -1083,8 +979,6 @@ def initCropValue():
   ctx.field("endY").value = ctx.field("DICOMInfo.sizeY").value
   ctx.field("endZ").value = ctx.field("DICOMInfo.sizeZ").value
   return
-
-
 
 def columnNumChanged(field):
   ctx.field("SoView2D1.numXSlices").value = ctx.field("numOfColumn").value
