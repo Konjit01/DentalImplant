@@ -1,3 +1,6 @@
+################################################################################
+# Optimazation of dental implant planning tool using MeVisLab Python Script    #
+################################################################################
 
 # MeVis module import
 from mevis import *
@@ -14,7 +17,6 @@ import os #urandom nd others
 from thread import start_new_thread, allocate_lock
 
 #Global varilables
-
 totalNumOfImplants = 0
 calculatingRight   = 0
 implantPsnStatus   = []
@@ -22,9 +24,10 @@ PI_RAD             = 3.14
 IBL      = 0.5
 jawType            = ctx.field("selectJaw").value
 
-##################################
-# Making implants parallel       #
-##################################
+######################################
+# Making all implants parallel       #
+######################################
+
 def makeAllImplantsParallel():
   selectedImplant = int(ctx.field("SelectedImplant").value)
   noOfImplants = getMarkerList().size()
@@ -54,6 +57,9 @@ def makeAllImplantsParallel():
       i+=1
   return
 
+############################################
+# Remove implant of selected implant      #
+############################################
 def removeImplatAtMArker():
   
   selectedImplant = int(ctx.field("SelectedImplant").value)
@@ -92,216 +98,9 @@ def removeAllImplants():
   initImplantHeight(jawType)
   return
 
-def deleteAllMarks():
-  ctx.field("PanoramicMarkerEditor.deleteAll").touch()
-  
-  return
-
-def doNotShowAxis():
-  ctx.field("showAxis.bypass").value = 0
-  return
-  
-def showManipulator():
-  ctx.field("showModel.noBypass").value = 1 - ctx.field("showManipulator").value
-  return
-
-def doNotShowManipulator():
-  ctx.field("showModel.bypass").value = 0 
-  return
-def doNotShowModel():
-  ctx.field("showModel.noBypass").value = 0 - ctx.field("showModel").value
-  return
-
-def showModelCmd():
-  #ctx.field("showModel.noBypass").value = 1 - ctx.field("showModel").value
-  return
-
-def show3DCurveChanged():
-  ctx.field("CurvePass.noBypass").value = 1 - ctx.field("display3DCurve").value
-  return
-def doNotShowNerve():
-  ctx.field("Bypass.noBypass").value = 0 - ctx.field("display3DNerve").value
-  return
-  
-def show3DNerve(field):
- ctx.field("Bypass.noBypass").value = 1 - ctx.field("display3DNerve").value
- return
- 
-def show(name):
-  ctx.field("planningView.applyCameraOrientation").value  = name
-  ctx.field("implantViewer.applyCameraOrientation").value = name
-  return
-
-def showPlaneChagned():
-  ctx.field("ShowPlane.noBypass").value = 1 - ctx.field("display3DPlane").value
-  return
-
-def doNotShowPlane():
-  ctx.field("ShowPlane.noBypass").value = 0 
-  ctx.field("display3DPlane").value= 0
-  return
-  
-def startXValue():
-  ctx.field("cropImageInXYZ.x").value = ctx.field("startX").value
-  return
-
-def endXValue(field):
-  ctx.field("cropImageInXYZ.sx").value = ctx.field("endX").value
-  #ctx.addFieldListener()
-  return
-
-def startYValue(field):
-  ctx.field("cropImageInXYZ.y").value = ctx.field("startY").value
-  return
-
-def endYValue(field):
-  ctx.field("cropImageInXYZ.sy").value = ctx.field("endY").value
-  return
-
-def startZValue(field):
- ctx.field("cropImageInXYZ.z").value = ctx.field("startZ").value
- return
-
-def endZValue(field):
- ctx.field("cropImageInXYZ.sz").value = ctx.field("endZ").value
- return
-
-
-def applyCrop(field):
-  ctx.field("cropImageInXYZ.apply").touch()
-  return
-  
-def dirDataPathChanged(field):
-  ctx.field("DicomModifyMultiFileVolumeExport.destinationDirectory").value = ctx.field("dirPathExportData").value
-  return
-
-def dirDataPathChanged(field):
-  ctx.field("import.fullPath").value = ctx.field("dirPathImportData").value
-  return 
-
-def create3DTriggeredCrop(field): 
-  ctx.field("Bypass.noBypass").value = 1
-  ctx.field("import.dplImport").touch()
-  return 
-
-def exportDicomsToPath():
-  #ctx.field("DicomModifyMultiFileVolumeExport.destinationDirectory").value = ctx.field("saveDICOMs").value
-  ctx.field("DicomModifyMultiFileVolumeExport.export").touch()
-  return
-
-def doScreenshot():
-  isIncrementalUpdate = ctx.field("renderer.incrementalUpdate").boolValue()
-  ctx.field("renderer.incrementalUpdate").value = 0
-  for i in range(50):
-    MLAB.processInventorQueue()
-  
-  # do the screenshot:
-  file = MLABFileManager.getUniqueFilename(MLABFileManager.getTmpDir(), "View3DTemp",".tif")
-  ctx.control("viewer").createScreenshot(file)
-
-  # ask user where to save it
-  target = MLABFileDialog.getSaveFileName(MLAB.readKey("View3D","LastScreenshot"),"Image files (*.tif *.tiff *.png *.jpg)", "Save Screenshot");
-
-  if target != "":
-    if target.find(".") == -1:
-      target += ".png"    
-    MLABGraphic.convertImage(file, target)
-    MLAB.writeKey("View3D","LastScreenshot", target)
-    MLAB.writeRegistry()
-
-  # remove tmp file
-  MLABFileManager.remove(file)
-  
-  ctx.field("renderer.incrementalUpdate").value = isIncrementalUpdate
-  return
-
-
-def showImportProgress(field):
- ctx.field("status").value = ctx.field("import.progressInfo").value
- return
-  
-##############################
-# Viewers parts              #
-##############################
-def selectViewerTypes():
- type = ctx.field("viewTypes").value
-
- if type == "AXIAL":
-   show('CAMERA_AXIAL') 
- if type == "SAGITTAL":
-   show('CAMERA_SAGITTAL')
- if type == "CORONAL" :  
-   show('CAMERA_CORONAL')
- if type == "PROFILE" :
-   show("CAMERA_HEAD_PROFILE")
- return
-
-def progressChanged():
-  progr = (ctx.field("WEMIsoSurface.progress").value + ctx.field("WEMSmooth.progress").value) / 2.0
-  ctx.field("progress").value = progr
-  return
-
-def prefixNameExportChagned(field):
-  ctx.field("DicomModifyMultiFileVolumeExport.destinationFileNameSuffix").value = ctx.field("prefixNameExport").value 
-  return
-
-def dirDataExportChanged(field):
-  ctx.field("DicomModifyMultiFileVolumeExport.destinationDirectory").value = ctx.field("dirPathExportData").value
-  return
-
-def exportStatusChanged(field):
-  ctx.field("statusExportDicom").value = ctx.field("DicomModifyMultiFileVolumeExport.status").value
-  return
-
-def namePatientLoadDICOM(field):
-  ctx.field("namePatientLoad").value= ctx.field("FirstName.result").value
-  return
-
-def loadPatintSex(field):
-  ctx.field("sexPatientLoad").value= ctx.field("DicomTagViewer.tagValue1").value
-  return
-
-def loadPatintAge(field):
-  ctx.field("statusPatientAge").value = ctx.field("DateOfBirth.result").value
-  return
-
-def loadLastName(field): 
-  ctx.field("lastNamePatientLoad").value = ctx.field("LastName.result").value
-  return
-
-def loadHospitalName(field):
-  ctx.field("hostpitalName").value = ctx.field("NameHosp.result").value
-  return
-
-def loadPatientID(field):
-  ctx.field("patientId").value = ctx.field("patientId.result").value
-  return
-
-def loadDocName(field):
-  ctx.field("docName").value = ctx.field("drFullName.result").value
-  return
-
-def selectViewerTypesCrop(field):
-  layoutModeValue = ctx.field("view").value
-  
-  if layoutModeValue == "LAYOUT_AXIAL": 
-    ctx.field("SoOrthoView2D.layoutMode").value = 'LAYOUT_AXIAL'
-  elif layoutModeValue == "LAYOUT_SAGITTAL":
-    ctx.field("SoOrthoView2D.layoutMode").value = 'LAYOUT_SAGITTAL'
-  elif layoutModeValue == "LAYOUT_CORONAL": 
-    ctx.field("SoOrthoView2D.layoutMode").value = 'LAYOUT_CORONAL'
-    show('LAYOUT_CORONAL')
-  elif layoutModeValue == "LAYOUT_CUBE": 
-    ctx.field("SoOrthoView2D.layoutMode").value = 'LAYOUT_CUBE'
-  elif layoutModeValue == "LAYOUT_CUBE_EQUAL":
-    ctx.field("SoOrthoView2D.layoutMode").value = 'LAYOUT_CUBE_EQUAL'
-  elif layoutModeValue == "LAYOUT_CUBE_CUSTOMIZED":
-    ctx.field("SoOrthoView2D.layoutMode").value = 'LAYOUT_CUBE_CUSTOMIZED'
-  return
-
-##################################
-# Optimization implants part     #
-##################################
+###################################
+# Optimization implants parts     #
+###################################
 def getMarkerList():
   return ctx.field("ImplantMarker.outXMarkerList").object()
 
@@ -340,7 +139,7 @@ def findAllPtsOnCircum(xPoint, yPoint, zPoint, radius):
     yDist =  radius*math.sin(rad) + yPoint
     rad = rad + STEP
     numOfPoints+=1
-    point = [xDist,yDist, zPoint]
+    point = [xDist, yDist, zPoint]
     #print("xPoints", xDist, "yPoints", yDist )
     fileIObject.write(str(point) + "\n")
   #print("The number of points on the Cirum:", numOfPoints)
@@ -360,7 +159,6 @@ def getWEMInfoPtr():
   return ctx.field("SurfInfo.outputCurveData").object()
 
 def MLWrapperCalls():
-  
    #WEMMLWrappers
    WEMID   = getWEMObject().getId() # 218
    WEMName = getWEMObject().getName() # wem_245
@@ -388,7 +186,7 @@ def MLWrapperCalls():
    minValue = primitiveLUTValuesPtr.getMinValue()
    #LUTValues = primitiveLUTValues().isValid()
    
-   return
+    return
   
 def getWEMConvertorObject(val):
   wemConvertor = "SoWEMConvertInventor" + str(val)
@@ -438,10 +236,9 @@ def getWEMPatch():
 def getNerveWEMPatch():
   return ctx.field("NerveInventorToWEM.outWEM").object()
   
-  
 def getFileName():
   return ctx.field("file").value
-      
+
 def switchBetweenSideAndBottom(val):
   i = 1
   while(i <= 12):
@@ -452,7 +249,9 @@ def switchBetweenSideAndBottom(val):
       ctx.field( baseSwitch + ".currentInput").value = 1
     i=+1
   return
-
+#########################################################
+# Implant Radius Optimization
+##########################################################
 def radiusOptumazation(cylinder, getSideSurface, wemSurface):
  
   implantRadius = ctx.field(cylinder   + ".radius").value
@@ -483,10 +282,10 @@ def radiusOptumazation(cylinder, getSideSurface, wemSurface):
       #print("avarage value:",  distAvgValue)
       #print("negative value and outside the selectJaw surfaces:", countNegetiveDistValue)
   return distAvgValue
-#getSurfacePatch = getWEMObject().getWEMPatchAt(0)
 
-#print("Global", getSurfacePatch)
-#returns an array that contains the radian values in which all top part of the implant is inside
+##################################################################################################
+#Returns an array that contains the radian values in which all top part of the implant is inside #
+##################################################################################################
 def checkIfImplantTopIsInside(index, bypass, marker, transfmanipName, cylinder, getSurfacePatch):
   jawType = ctx.field("selectJaw").value
   implantHeight   = ctx.field(cylinder+ ".height").value
@@ -536,7 +335,9 @@ def checkIfImplantTopIsInside(index, bypass, marker, transfmanipName, cylinder, 
   if(implantHeight == 7 ): ctx.field("implantStatus").value     =  "It might not be in its best position."
   return nodesPostions
 
-
+###################################################################
+# Checks if an implant is in contact with the canal nerve
+###################################################################
 def checkForCanalNerve(index, radValue, marker, transfmanipName, cylinder):
   #jawType = ctx.field("selectJaw").value
   implantTopPatch = getWEMConvertorObject(index).getWEMPatchAt(0)
@@ -769,36 +570,245 @@ def insertImplantAtMarker():
                   break
              
               if jawType == "MANDIBLE" and implantHeight > 7:
-                checkForCanalNerve(index+1, optRadianValue, marker, transfmanipName, cylinder)
+                checkForCanalNerve(index + 1, optRadianValue, marker, transfmanipName, cylinder)
               
-             
             ctx.field("implantStatus").value = implantPsnStatus[index][1]
             totalNumOfImplants += 1
       else:
         ctx.field(bypass).value = False
-      i+=1
+      i += 1
   else:
     ctx.field("markerStatus").value = "You have reached the limit!"
   #print("Implant status", implantPsnStatus)
-  
   return totalNumOfImplants
 
-def decomposeVectorSliceChanged(field):
-  ctx.field("path_stack.startSlice").value = ctx.field("vectorCMPR.x").value
-  ctx.field("SlicesSlider").value          = ctx.field("vectorCMPR.x").value
+#########################################
+# Meausres the angle between two implants#
+#########################################
+def showAngleBetweenTwoImplants():
+  PI = 3.141592653
+  selectedImplantOne = ctx.field("SelectedImplant").value
+  selectedImplantTwo = ctx.field("SelectedImplant2").value
+  if(selectedImplantTwo >=1 and selectedImplantTwo <= 12):
+  #bybass1 = "SoBypass" + str(selectedImplantOne) + ".bypass"
+    bybass1 =  "SoBypass" + str(selectedImplantOne)
+    transfmanipOne = ctx.field(ctx.field(bybass1 + ".baseIn0").connectedField().parent().childAtIndex(2).connectedField().parent().name + ".baseIn0").connectedField().parent().name
+    bybass2 =  "SoBypass" + str(selectedImplantTwo)
+    transfmanipTwo = ctx.field(ctx.field(bybass2 + ".baseIn0").connectedField().parent().childAtIndex(2).connectedField().parent().name + ".baseIn0").connectedField().parent().name
+    rotation1 = ctx.field(transfmanipOne+ ".rotation").value
+    rotation2 = ctx.field(transfmanipTwo+ ".rotation").value
+    radValue  = rotation1[3] - rotation2[3]
+    inDegree  = (radValue*180)/PI 
+    if radValue < 0:
+     inDegree = inDegree * -1
+    ctx.field("radValue").value = inDegree
+  return 
+
+
+def doNotShowAxis():
+  ctx.field("showAxis.bypass").value = 0
+  return
+  
+def showManipulator():
+  ctx.field("showModel.noBypass").value = 1 - ctx.field("showManipulator").value
   return
 
-def mouseGrabberRightPosChanged(field):
-  ctx.field("SlicesSliderRightNerve").value = ctx.field("SoMouseGrabber.wheel").value
+def doNotShowManipulator():
+  ctx.field("showModel.bypass").value = 0 
   return
 
-def mouseGrabberLeftPosChanged(field):
-  ctx.field("SlicesSliderLeftNerve").value = ctx.field("SoMouseGrabber1.wheel").value
+def doNotShowModel():
+  ctx.field("showModel.noBypass").value = 0 - ctx.field("showModel").value
   return
 
-def mousePanoramicChanged():
-  ctx.field("PanoramicSlicesSlider").value = ctx.field("SoMouseGrabber4.wheel").value
+def showModelCmd():
+  #ctx.field("showModel.noBypass").value = 1 - ctx.field("showModel").value
   return
+
+def show3DCurveChanged():
+  ctx.field("CurvePass.noBypass").value = 1 - ctx.field("display3DCurve").value
+  return
+
+def doNotShowNerve():
+  ctx.field("Bypass.noBypass").value = 0 - ctx.field("display3DNerve").value
+  return
+  
+def show3DNerve(field):
+ ctx.field("Bypass.noBypass").value = 1 - ctx.field("display3DNerve").value
+ return
+ 
+def show(name):
+  ctx.field("planningView.applyCameraOrientation").value  = name
+  ctx.field("implantViewer.applyCameraOrientation").value = name
+  return
+
+def showPlaneChagned():
+  ctx.field("ShowPlane.noBypass").value = 1 - ctx.field("display3DPlane").value
+  return
+
+def doNotShowPlane():
+  ctx.field("ShowPlane.noBypass").value = 0 
+  ctx.field("display3DPlane").value= 0
+  return
+  
+def startXValue():
+  ctx.field("cropImageInXYZ.x").value = ctx.field("startX").value
+  return
+
+def endXValue(field):
+  ctx.field("cropImageInXYZ.sx").value = ctx.field("endX").value
+  #ctx.addFieldListener()
+  return
+
+def startYValue(field):
+  ctx.field("cropImageInXYZ.y").value = ctx.field("startY").value
+  return
+
+def endYValue(field):
+  ctx.field("cropImageInXYZ.sy").value = ctx.field("endY").value
+  return
+
+def startZValue(field):
+ ctx.field("cropImageInXYZ.z").value = ctx.field("startZ").value
+ return
+
+def endZValue(field):
+ ctx.field("cropImageInXYZ.sz").value = ctx.field("endZ").value
+ return
+
+
+def applyCrop(field):
+  ctx.field("cropImageInXYZ.apply").touch()
+  return
+  
+def dirDataPathChanged(field):
+  ctx.field("DicomModifyMultiFileVolumeExport.destinationDirectory").value = ctx.field("dirPathExportData").value
+  return
+
+def dirDataPathChanged(field):
+  ctx.field("import.fullPath").value = ctx.field("dirPathImportData").value
+  return 
+
+def create3DTriggeredCrop(field): 
+  ctx.field("Bypass.noBypass").value = 1
+  ctx.field("import.dplImport").touch()
+  return 
+
+def exportDicomsToPath():
+  #ctx.field("DicomModifyMultiFileVolumeExport.destinationDirectory").value = ctx.field("saveDICOMs").value
+  ctx.field("DicomModifyMultiFileVolumeExport.export").touch()
+  return
+
+def doScreenshot():
+  isIncrementalUpdate = ctx.field("renderer.incrementalUpdate").boolValue()
+  ctx.field("renderer.incrementalUpdate").value = 0
+  for i in range(50):
+    MLAB.processInventorQueue()
+  
+  # do the screenshot:
+  file = MLABFileManager.getUniqueFilename(MLABFileManager.getTmpDir(), "View3DTemp",".tif")
+  ctx.control("viewer").createScreenshot(file)
+
+  # ask user where to save it
+  target = MLABFileDialog.getSaveFileName(MLAB.readKey("View3D","LastScreenshot"),"Image files (*.tif *.tiff *.png *.jpg)", "Save Screenshot");
+
+  if target != "":
+    if target.find(".") == -1:
+      target += ".png"    
+    MLABGraphic.convertImage(file, target)
+    MLAB.writeKey("View3D","LastScreenshot", target)
+    MLAB.writeRegistry()
+
+  # remove tmp file
+  MLABFileManager.remove(file)
+  
+  ctx.field("renderer.incrementalUpdate").value = isIncrementalUpdate
+  return
+
+
+def showImportProgress(field):
+ ctx.field("status").value = ctx.field("import.progressInfo").value
+ return
+  
+##############################
+# Viewers parts              #
+##############################
+def selectViewerTypes():
+ type = ctx.field("viewTypes").value
+
+ if type == "AXIAL":
+   show('CAMERA_AXIAL') 
+ if type == "SAGITTAL":
+   show('CAMERA_SAGITTAL')
+ if type == "CORONAL" :  
+   show('CAMERA_CORONAL')
+ if type == "PROFILE" :
+   show("CAMERA_HEAD_PROFILE")
+ return
+
+def progressChanged():
+  progr = (ctx.field("WEMIsoSurface.progress").value + ctx.field("WEMSmooth.progress").value) / 2.0
+  ctx.field("progress").value = progr
+  return
+
+def prefixNameExportChagned(field):
+  ctx.field("DicomModifyMultiFileVolumeExport.destinationFileNameSuffix").value = ctx.field("prefixNameExport").value 
+  return
+
+def dirDataExportChanged(field):
+  ctx.field("DicomModifyMultiFileVolumeExport.destinationDirectory").value = ctx.field("dirPathExportData").value
+  return
+
+def exportStatusChanged(field):
+  ctx.field("statusExportDicom").value = ctx.field("DicomModifyMultiFileVolumeExport.status").value
+  return
+
+def namePatientLoadDICOM(field):
+  ctx.field("namePatientLoad").value= ctx.field("FirstName.result").value
+  return
+
+def loadPatintSex(field):
+  ctx.field("sexPatientLoad").value= ctx.field("DicomTagViewer.tagValue1").value
+  return
+
+def loadPatintAge(field):
+  ctx.field("statusPatientAge").value = ctx.field("DateOfBirth.result").value
+  return
+
+def loadLastName(field): 
+  ctx.field("lastNamePatientLoad").value = ctx.field("LastName.result").value
+  return
+
+def loadHospitalName(field):
+  ctx.field("hostpitalName").value = ctx.field("NameHosp.result").value
+  return
+
+def loadPatientID(field):
+  ctx.field("patientId").value = ctx.field("patientId.result").value
+  return
+
+def loadDocName(field):
+  ctx.field("docName").value = ctx.field("drFullName.result").value
+  return
+
+def selectViewerTypesCrop(field):
+  layoutModeValue = ctx.field("view").value
+  
+  if layoutModeValue == "LAYOUT_AXIAL": 
+    ctx.field("SoOrthoView2D.layoutMode").value = 'LAYOUT_AXIAL'
+  elif layoutModeValue == "LAYOUT_SAGITTAL":
+    ctx.field("SoOrthoView2D.layoutMode").value = 'LAYOUT_SAGITTAL'
+  elif layoutModeValue == "LAYOUT_CORONAL": 
+    ctx.field("SoOrthoView2D.layoutMode").value = 'LAYOUT_CORONAL'
+    show('LAYOUT_CORONAL')
+  elif layoutModeValue == "LAYOUT_CUBE": 
+    ctx.field("SoOrthoView2D.layoutMode").value = 'LAYOUT_CUBE'
+  elif layoutModeValue == "LAYOUT_CUBE_EQUAL":
+    ctx.field("SoOrthoView2D.layoutMode").value = 'LAYOUT_CUBE_EQUAL'
+  elif layoutModeValue == "LAYOUT_CUBE_CUSTOMIZED":
+    ctx.field("SoOrthoView2D.layoutMode").value = 'LAYOUT_CUBE_CUSTOMIZED'
+  return
+
 def measureOrPostions(field):
   type = ctx.field("Options").value
   if(type == "POSITION"):
@@ -982,10 +992,6 @@ def planeAngleChanged(field):
   ctx.field("planeDegree").value = rotation[3]
   return
 
-def planeDegreeChanged():
-  
-  return 
-
 def markerPositionValueChanges():
   posX = maxXValueChanged()
   posY = maxYValueChanged()
@@ -1077,28 +1083,6 @@ def initCropValue():
   ctx.field("endY").value = ctx.field("DICOMInfo.sizeY").value
   ctx.field("endZ").value = ctx.field("DICOMInfo.sizeZ").value
   return
-
-#########################################
-# Meausres the angle between to implants#
-#########################################
-def showAngleBetweenTwoImplants():
-  PI = 3.141592653
-  selectedImplantOne = ctx.field("SelectedImplant").value
-  selectedImplantTwo = ctx.field("SelectedImplant2").value
-  if(selectedImplantTwo >=1 and selectedImplantTwo <= 12):
-  #bybass1 = "SoBypass" + str(selectedImplantOne) + ".bypass"
-    bybass1 =  "SoBypass" + str(selectedImplantOne)
-    transfmanipOne = ctx.field(ctx.field(bybass1 + ".baseIn0").connectedField().parent().childAtIndex(2).connectedField().parent().name + ".baseIn0").connectedField().parent().name
-    bybass2 =  "SoBypass" + str(selectedImplantTwo)
-    transfmanipTwo = ctx.field(ctx.field(bybass2 + ".baseIn0").connectedField().parent().childAtIndex(2).connectedField().parent().name + ".baseIn0").connectedField().parent().name
-    rotation1 = ctx.field(transfmanipOne+ ".rotation").value
-    rotation2 = ctx.field(transfmanipTwo+ ".rotation").value
-    radValue  = rotation1[3] - rotation2[3]
-    inDegree  = (radValue*180)/PI 
-    if radValue < 0:
-     inDegree = inDegree * -1
-    ctx.field("radValue").value = inDegree
-  return 
 
 
 
