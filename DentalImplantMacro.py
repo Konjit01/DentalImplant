@@ -15,7 +15,12 @@ totalNumOfImplants = 0
 calculatingRight   = 0
 implantPsnStatus   = []
 PI_RAD             = 3.14
-IBL      = 0.5
+IBL                = 0.5
+MAX_NR_IMPLANTS    = 12
+MIN_IMPLANT_HIEGHT = 7
+MAX_IMPLANT_HIEGHT = 13
+MIN_IMPLANT_RADIUS = 1.25
+MAX_IMPLANT_SIZE   = 3
 jawType            = ctx.field("selectJaw").value
 
 ######################################
@@ -84,7 +89,7 @@ def removeAllImplants():
   global totalNumOfImplants
   jawType = ctx.field("selectJaw").value
   #print("Inside the remove implants", totalNumOfImplants)
-  while i <= 12:
+  while i <= MAX_NR_IMPLANTS:
     bypass = "SoBypass" + str(i) + ".bypass"
     ctx.field(bypass).value = False
     i+=1
@@ -111,7 +116,7 @@ def getMarkerAtIndex(index):
       
 def initImplantHeight(jawType):
   i=1
-  while(i <= 12):
+  while(i <= MAX_NR_IMPLANTS):
     cylinder = "SoCylinder" + str(i)
     if(jawType == "MAXILLA"):
       ctx.field(cylinder + ".height").value = 12
@@ -147,7 +152,7 @@ def getWEMObject():
 
 def switchToBottomCyl():
   i = 1
-  while i <= 12:
+  while i <= MAX_NR_IMPLANTS:
     baseSwitch = "BaseSwitch" + str(i)
     ctx.field(baseSwitch+ ".currentInput").value = 1
     i+=1
@@ -238,7 +243,7 @@ def getFileName():
 
 def switchBetweenSideAndBottom(val):
   i = 1
-  while(i <= 12):
+  while(i <= MAX_NR_IMPLANTS):
     baseSwitch = "BaseSwitch" + str(i)
     if val == 0:
       ctx.field( baseSwitch + ".currentInput").value = 0
@@ -484,7 +489,7 @@ def insertImplantAtMarker():
   allImplantsPositioned = []
   markerStatusAtIndex   = []
   
-  if totalNumOfImplants < 12:
+  if totalNumOfImplants < MAX_NR_IMPLANTS:
     for index in xrange( getMarkerList().size() ):
       if index <= getMarkerList().size():
         bypass = "SoBypass" + str(index + 1) + ".bypass"  #bool value with the corresponding SoBypass(index + 1)
@@ -596,7 +601,7 @@ def showAngleBetweenTwoImplants():
     rotation1 = ctx.field(transfmanipOne+ ".rotation").value
     rotation2 = ctx.field(transfmanipTwo+ ".rotation").value
     radValue  = rotation1[3] - rotation2[3]
-    inDegree  = (radValue*180)/PI 
+    inDegree  = (radValue*180)/PI_RAD 
     if radValue < 0:
      inDegree = inDegree * -1
     ctx.field("radValue").value = inDegree
