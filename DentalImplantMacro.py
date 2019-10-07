@@ -21,6 +21,10 @@ MIN_IMPLANT_HIEGHT = 7
 MAX_IMPLANT_HIEGHT = 13
 MIN_IMPLANT_RADIUS = 1.25
 MAX_IMPLANT_SIZE   = 3
+INIT_HIEGHT_LENGTH = 12
+INIT_RADIUS_LENGTH = 1.5
+REDUCE_RADUIS_SIZE = 0.1
+REDUCE_HEIGHT_SIZE = 0.1
 jawType            = ctx.field("selectJaw").value
 
 ######################################
@@ -167,7 +171,7 @@ def MLWrapperCalls():
    numOfPatches = getWEMObject().getNumWEMPatches() # numOfPatches = 1
    #Returns a pointer to the WEMPatch at the given POSITION in the internal list. 
    WEMPtr = getWEMObject().getWEMPatchAt(0) #MLWEMPatchWrapper (MLWEMPatchWrapper at: 0x38aa65f0)
-   getWEM = getWEMObject().getWEMPatchById( 218 )
+   #getWEM = getWEMObject().getWEMPatchById( 218 )
    #Returns a list with all WEMPatches. 
    getWEMList = getWEMObject().getWEMPatches() #MLWEMPatchWrapper (MLWEMPatchWrapper at: 0x23f92810
    #Returns whether the WEM is valid.
@@ -335,7 +339,7 @@ def checkIfImplantTopIsInside(index, bypass, marker, transfmanipName, cylinder, 
   ctx.field("ImplantRadius").value   = implantRadius
  
   #print("Implant Height: ",   implantHeight, "mm")
-  if(implantHeight == 7 ): ctx.field("implantStatus").value     =  "It might not be in its best position."
+  if(implantHeight == MIN_IMPLANT_HIEGHT ): ctx.field("implantStatus").value     =  "It might not be in its best position."
   return nodesPostions
 
 ###################################################################
@@ -568,11 +572,11 @@ def insertImplantAtMarker():
                 nodeRadPair1 = checkIfImplantSideIsInside(getSurfacePatch, sidePatch)
                 if nodeRadPair1 > 11:
                   #print("Node outside", nodeRadPair1)
-                  implantRadius-=0.1
+                  implantRadius-= REDUCE_SIZE
                 else:
                   break
              
-              if jawType == "MANDIBLE" and implantHeight > 7:
+              if jawType == "MANDIBLE" and implantHeight > MIN_IMPLANT_HEIGHT:
                 checkForCanalNerve(index + 1, optRadianValue, marker, transfmanipName, cylinder)
               
             ctx.field("implantStatus").value = implantPsnStatus[index][1]
@@ -589,10 +593,9 @@ def insertImplantAtMarker():
 # Meausres the angle between two implants #
 ###########################################
 def showAngleBetweenTwoImplants():
-  PI = 3.141592653
   selectedImplantOne = ctx.field("SelectedImplant").value
   selectedImplantTwo = ctx.field("SelectedImplant2").value
-  if(selectedImplantTwo >=1 and selectedImplantTwo <= 12):
+  if(selectedImplantTwo >= 1 and selectedImplantTwo <= MAX_NR_IMPLANTS):
   #bybass1 = "SoBypass" + str(selectedImplantOne) + ".bypass"
     bybass1 =  "SoBypass" + str(selectedImplantOne)
     transfmanipOne = ctx.field(ctx.field(bybass1 + ".baseIn0").connectedField().parent().childAtIndex(2).connectedField().parent().name + ".baseIn0").connectedField().parent().name
@@ -603,7 +606,7 @@ def showAngleBetweenTwoImplants():
     radValue  = rotation1[3] - rotation2[3]
     inDegree  = (radValue*180)/PI_RAD 
     if radValue < 0:
-     inDegree = inDegree * -1
+     inDegree = inDegree * - 1
     ctx.field("radValue").value = inDegree
   return 
 
