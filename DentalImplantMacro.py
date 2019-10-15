@@ -20,11 +20,12 @@ MAX_NR_IMPLANTS    = 12
 MIN_IMPLANT_HIEGHT = 7
 MAX_IMPLANT_HIEGHT = 13
 MIN_IMPLANT_RADIUS = 1.25
-MAX_IMPLANT_SIZE   = 3
+MAX_IMPLANT_SIZE   = 12
 INIT_HIEGHT_LENGTH = 12
-INIT_RADIUS_LENGTH = 1.5
+INIT_IMP_RADUIS    = 1.75
 REDUCE_RADUIS_SIZE = 0.1
-REDUCE_HEIGHT_SIZE = 0.1
+REDUCE_HEIGHT_SIZE = 0.5
+DIST_BN_IMPLANTS   = 5
 jawType            = ctx.field("selectJaw").value
 
 ######################################
@@ -77,11 +78,11 @@ def removeImplatAtMArker():
   ctx.field("Surface3DEditor.index").value
   #ctx.field("Surface3DEditor.delete").touch()
   #resetting parameter
-  ctx.field(cylinder + ".radius").value   = 1.75
+  ctx.field(cylinder + ".radius").value   = INIT_IMP_RADUIS
   if jaw == "MAXILLA":
-    ctx.field(cylinder + ".height").value = 12
+    ctx.field(cylinder + ".height").value = INIT_HIEGHT_LENGTH
   if jaw == "MANDIBLE":
-    ctx.field(cylinder + ".height").value = 13
+    ctx.field(cylinder + ".height").value = MAX_IMPLANT_HIEGHT
   ctx.field(bypass).value = False
   return
 
@@ -123,11 +124,11 @@ def initImplantHeight(jawType):
   while(i <= MAX_NR_IMPLANTS):
     cylinder = "SoCylinder" + str(i)
     if(jawType == "MAXILLA"):
-      ctx.field(cylinder + ".height").value = 12
-      ctx.field(cylinder + ".radius").value = 1.75
+      ctx.field(cylinder + ".height").value = INIT_IMPLANT_HEIGHT
+      ctx.field(cylinder + ".radius").value = INIT_IMP_RADUIS
     if(jawType == "MANDIBLE"): 
-      ctx.field(cylinder + ".height").value = 13
-      ctx.field(cylinder + ".radius").value = 1.75
+      ctx.field(cylinder + ".height").value = MAX_IMPLANT_HEIGHT
+      ctx.field(cylinder + ".radius").value = INIT_IMP_RADUIS
     i+=1
   return
 
@@ -140,7 +141,7 @@ def findAllPtsOnCircum(xPoint, yPoint, zPoint, radius):
   rad = 0
   numOfPoints = 0
   fileIObject = open("Nodes", 'w') 
-  while(  rad <= 6.28):
+  while(  rad <= 2*PI_RAD):
     xDist =  radius*math.cos(rad) + xPoint
     yDist =  radius*math.sin(rad) + yPoint
     rad = rad + STEP
@@ -488,7 +489,6 @@ def insertImplantAtMarker():
   jawType         = ctx.field("selectJaw").value
   getSurfacePatch = ctx.field("WEMIsoSurface.outWEM").object().getWEMPatchAt(0)
   i                     = 1 #important to keep the order of the implants from the .mlab file
-  
   implantStatus         = ""
   allImplantsPositioned = []
   markerStatusAtIndex   = []
@@ -502,8 +502,8 @@ def insertImplantAtMarker():
           if( getMarkerList().size() > 0 ):               #for checking distance between two implants.
             marker2  = getMarkerAtIndex(index + 1)
             retValue = checkMarkerStatus(marker, marker2)
-            if retValue < 5 and index < getMarkerList().size() - 1 :
-              ctx.field("markerStatus").value = "The distance b/n 2 markers should greater than 5 mm."
+            if retValue < DIST_BN_IMPLANTS and index < getMarkerList().size() - 1 :
+              ctx.field("markerStatus").value = "The distance b/n 2 markers should be greater than 5 mm."
             else:
               x, y, z = marker.x, marker.y, marker.z
               change = [x, y, z]
@@ -540,7 +540,7 @@ def insertImplantAtMarker():
               ctx.field(baseSwitch+ ".currentInput").value = 0
               #centroid  = ctx.field("CalculateWEMCentroid.centroid").value
               #COVx,  COVy, COVz     = centroid.x,  centroid.y,  centroid.z
-              while implantHeight >= 7: #the height of implant cannot be less than 7 mm 
+              while implantHeight >= MIN_IMPLANT_HEIGHT: #the height of implant cannot be less than 7 mm 
                 ctx.field(cylinder+ ".height").value = implantHeight
                 nodeRadPair = checkIfImplantTopIsInside(index + 1, bypass, marker, transfmanipName, cylinder, getSurfacePatch)
                 #print("All radian values", nodeRadPair)
@@ -556,7 +556,7 @@ def insertImplantAtMarker():
                 implantStatus = "No supporting bone avialable!"
                 implantStatus  = "Implant might not be in its best position!!!"
                 implantPsnStatus.append((index + 1, implantStatus)) 
-              elif( implantHeight == 7 ): 
+              elif( implantHeight == MIN_IMPLANT_HEIGHT ): 
                 implantStatus  = "Implant might not be in its best position!!!"
                 implantPsnStatus.append((index + 1, implantStatus)) 
               else: 
@@ -570,7 +570,7 @@ def insertImplantAtMarker():
                 ctx.field(cylinder+ ".radius").value = implantRadius
                 ctx.field("ImplantRadius").value = ctx.field(cylinder+ ".radius").value
                 nodeRadPair1 = checkIfImplantSideIsInside(getSurfacePatch, sidePatch)
-                if nodeRadPair1 > 11:
+                if nodeRadPair1 > MAX_NR_IMPLANTS-1:
                   #print("Node outside", nodeRadPair1)
                   implantRadius-= REDUCE_SIZE
                 else:
